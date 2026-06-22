@@ -2,9 +2,10 @@ package com.cheatlearn.bgmiloader;
 
 import android.util.Log;
 import java.io.DataInputStream;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
 
 public class IPCReceiver implements Runnable {
     private static final String TAG = "IPCReceiver";
@@ -60,9 +61,15 @@ public class IPCReceiver implements Runnable {
                 e.position.y = dis.readFloat();
                 e.position.z = dis.readFloat();
                 int nameLen = dis.readInt();
-                byte[] nameBytes = new byte[Math.min(nameLen, 64)];
+                if (nameLen < 0 || nameLen > 4096) {
+                    Log.w(TAG, "Invalid name length: " + nameLen);
+                    return;
+                }
+                int readLen = Math.min(nameLen, 64);
+                byte[] nameBytes = new byte[readLen];
                 dis.readFully(nameBytes);
-                e.name = new String(nameBytes, "UTF-8");
+                skipFully(dis, nameLen - readLen);
+                e.name = new String(nameBytes, StandardCharsets.UTF_8);
                 SharedEntityBuffer.push(e);
             }
             dis.close();
@@ -76,5 +83,13 @@ public class IPCReceiver implements Runnable {
     public void stop() {
         running = false;
         try { serverSocket.close(); } catch (Exception ignored) {}
+    }
+
+    private static void skipFully(DataInputStream dis, int bytes) throws IOException {
+        while (bytes > 0) {
+            int skipped = dis.skipBytes(bytes);
+            if (skipped <= 0) throw new IOException("Failed to skip " + bytes + " bytes");
+            bytes -= skipped;
+        }
     }
 }

@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -24,6 +26,8 @@ public class ESPRenderer extends SurfaceView implements SurfaceHolder.Callback, 
 
     public ESPRenderer(Context ctx) {
         super(ctx);
+        setZOrderOnTop(true);
+        getHolder().setFormat(PixelFormat.TRANSLUCENT);
         getHolder().addCallback(this);
 
         boxPaint = new Paint();
@@ -93,7 +97,7 @@ public class ESPRenderer extends SurfaceView implements SurfaceHolder.Callback, 
     private void drawFrame(Canvas canvas) {
         int w = canvas.getWidth();
         int h = canvas.getHeight();
-        canvas.drawColor(Color.argb(0, 0, 0, 0));
+        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 
         // Crosshair
         linePaint.setColor(Color.argb(100, 255, 255, 255));
@@ -116,7 +120,8 @@ public class ESPRenderer extends SurfaceView implements SurfaceHolder.Callback, 
         Vector2 screen = new Vector2();
         if (!WorldToScreen.project(vm, e.position, screen, w, h)) return;
 
-        float boxH = Math.max(25, 6000f / e.distance);
+        float safeDistance = Math.max(1f, e.distance);
+        float boxH = Math.max(25, 6000f / safeDistance);
         float boxW = boxH * 0.6f;
         float left = screen.x - boxW / 2f;
         float top = screen.y - boxH / 2f;
@@ -132,7 +137,9 @@ public class ESPRenderer extends SurfaceView implements SurfaceHolder.Callback, 
 
         // Health bar background
         c.drawRect(left - 5, top, left - 2, top + boxH, healthBgPaint);
-        float healthPct = Math.max(0, e.health / (float) e.maxHealth);
+        float healthPct = e.maxHealth > 0
+            ? Math.max(0, Math.min(1, e.health / (float) e.maxHealth))
+            : 0;
         float healthBarH = boxH * healthPct;
         healthFgPaint.setColor(e.health > 50 ? Color.GREEN : e.health > 25 ? Color.YELLOW : Color.RED);
         c.drawRect(left - 5, top + boxH - healthBarH, left - 2, top + boxH, healthFgPaint);

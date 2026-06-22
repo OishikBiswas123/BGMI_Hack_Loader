@@ -9,23 +9,38 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="BGMI Loader"
-        android:textSize="28sp"
+        android:text="Harry Chutiya Loader"
+        android:textSize="24sp"
         android:textStyle="bold" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="ESP + Aimbot"
+        android:text="BGMI ESP + Aimbot"
         android:textSize="14sp"
         android:layout_marginTop="4dp" />
+
+    <Button
+        android:id="@+id/btnPatch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Patch BGMI"
+        android:layout_marginTop="32dp" />
+
+    <Button
+        android:id="@+id/btnLaunch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Launch Patched BGMI"
+        android:enabled="false"
+        android:layout_marginTop="8dp" />
 
     <Button
         android:id="@+id/btnStartOverlay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Start Overlay"
-        android:layout_marginTop="32dp" />
+        android:layout_marginTop="24dp" />
 
     <Button
         android:id="@+id/btnStopOverlay"

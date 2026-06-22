@@ -1,3 +1,8 @@
--keep class com.cheatlearn.bgmiloader.XposedMod { *; }
--keep class de.robv.android.xposed.** { *; }
--keep class com.cheatlearn.bgmiloader.utils.** { *; }
+-keep class org.lsposed.** { *; }
+-keep class com.android.tools.** { *; }
+-keep class com.google.gson.** { *; }
+-keep class com.beust.jcommander.** { *; }
+-keep class com.wind.meditor.** { *; }
+-keep class org.bouncycastle.** { *; }
+-keep class com.google.common.** { *; }
+-keep class org.apache.commons.io.** { *; }

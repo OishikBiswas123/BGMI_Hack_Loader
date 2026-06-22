@@ -9,7 +9,9 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
+import java.security.Provider;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
@@ -22,6 +24,8 @@ public class KeystoreGenerator {
     };
 
     public static void generate(File outputFile, String password, String alias) throws Exception {
+        registerBCProvider();
+
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
         kpg.initialize(2048, new SecureRandom());
         KeyPair kp = kpg.generateKeyPair();
@@ -30,7 +34,7 @@ public class KeystoreGenerator {
         X509Certificate cert = createSelfSignedCert(kp);
 
         Log.i(TAG, "Storing as PKCS12 keystore...");
-        KeyStore ks = KeyStore.getInstance("PKCS12");
+        KeyStore ks = KeyStore.getInstance("PKCS12", "BC");
         ks.load(null, null);
         ks.setKeyEntry(alias, kp.getPrivate(), password.toCharArray(),
                 new X509Certificate[]{cert});
@@ -39,6 +43,27 @@ public class KeystoreGenerator {
             ks.store(fos, password.toCharArray());
         }
         Log.i(TAG, "Keystore generated: " + outputFile.getAbsolutePath());
+    }
+
+    private static void registerBCProvider() {
+        String[][] providers = {
+            {"com.android.org.bouncycastle.jce.provider.BouncyCastleProvider", "BC"},
+            {"org.bouncycastle.jce.provider.BouncyCastleProvider", "BC"}
+        };
+        for (String[] entry : providers) {
+            try {
+                Provider existing = Security.getProvider(entry[1]);
+                if (existing != null && existing.getClass().getName().equals(entry[0])) return;
+                Class<?> clazz = Class.forName(entry[0]);
+                Provider prov = (Provider) clazz.getDeclaredConstructor().newInstance();
+                Security.insertProviderAt(prov, 1);
+                Log.i(TAG, "Registered " + entry[0] + " at position 1");
+                return;
+            } catch (Exception e) {
+                continue;
+            }
+        }
+        Log.w(TAG, "No BouncyCastle provider found to register");
     }
 
     private static X509Certificate createSelfSignedCert(KeyPair kp) throws Exception {

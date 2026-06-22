@@ -1,0 +1,27 @@
+{
+    "_comment": "BGMI 4.4.0 arm64-v8a offsets (confirmed from UC LIBBYPASS dump)",
+    "UWorld": "0x1225F938",
+    "GNames": "0x124EF760",
+    "GObjects": "0x1221F570",
+    "CurrentLevel": "0x800",
+    "GameInstance": "0x3B0",
+    "LocalPlayers": "0xF0",
+    "PlayerController": "0x38",
+    "AcknowledgedPawn": "0x4A8",
+    "PlayerCameraManager": "0x4D0",
+    "RootComponent": "0x308",
+    "PlayerState": "0x418",
+
+    "EntityList": "0x38",
+    "EntityListSize": "0x40",
+
+    "_guess": "Unconfirmed entity offsets — adjust after testing",
+    "Mesh": "0x4D0",
+    "Health": "0x9A4",
+    "IsDBNO": "0x9DC",
+    "PlayerName": "0x6A0",
+    "TeamID": "0x6C8",
+    "RelativeLocation": "0x1F8",
+    "CameraCache": "0x470",
+    "ViewProjectionMatrix": "0x1FC"
+}

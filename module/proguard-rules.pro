@@ -1,0 +1,2 @@
+-keep class com.cheatlearn.bgmiloader.** { *; }
+-keep class de.robv.android.xposed.** { *; }

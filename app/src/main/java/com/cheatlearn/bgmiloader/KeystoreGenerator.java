@@ -9,9 +9,13 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.Date;
+import java.util.List;
+
+import com.android.apksig.ApkSigner;
 
 public class KeystoreGenerator {
 
@@ -142,5 +146,40 @@ public class KeystoreGenerator {
             }
         }
         throw new NoSuchMethodException("generate(PrivateKey) not found");
+    }
+
+    public static KeyPairAndCert generateKeyPairAndCert() throws Exception {
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        kpg.initialize(2048, new SecureRandom());
+        KeyPair kp = kpg.generateKeyPair();
+
+        Log.i(TAG, "Generating self-signed X509 certificate...");
+        X509Certificate cert = createSelfSignedCert(kp);
+
+        cert.verify(kp.getPublic());
+        Log.i(TAG, "Self-signed certificate generated and verified");
+        return new KeyPairAndCert(kp.getPrivate(), cert);
+    }
+
+    public static void signApk(File inputApk, File outputApk, PrivateKey privateKey, X509Certificate cert) throws Exception {
+        Log.i(TAG, "Signing APK with ApkSigner...");
+        ApkSigner.Builder builder = new ApkSigner.Builder(
+                List.of(new ApkSigner.SignerConfig.Builder("CERT", privateKey, List.of(cert)).build())
+        );
+        builder.setInputApk(inputApk);
+        builder.setOutputApk(outputApk);
+        builder.setMinSdkVersion(28);
+        builder.build().sign();
+        Log.i(TAG, "APK signed: " + outputApk.getAbsolutePath());
+    }
+
+    public static class KeyPairAndCert {
+        public final PrivateKey privateKey;
+        public final X509Certificate cert;
+
+        public KeyPairAndCert(PrivateKey privateKey, X509Certificate cert) {
+            this.privateKey = privateKey;
+            this.cert = cert;
+        }
     }
 }

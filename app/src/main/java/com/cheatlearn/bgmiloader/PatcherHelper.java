@@ -12,6 +12,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 
 public class PatcherHelper {
 
@@ -73,10 +75,6 @@ public class PatcherHelper {
                     while ((n = is.read(buf)) > 0) os.write(buf, 0, n);
                 }
 
-                File keystoreFile = new File(cacheDir, "runtime_keystore.p12");
-                callback.onProgress("Generating signing keystore on device...");
-                KeystoreGenerator.generate(keystoreFile, "123456", "key0");
-
                 File outputDir = new File(cacheDir, "patched");
                 if (!outputDir.exists() && !outputDir.mkdirs()) {
                     callback.onError("Failed to create output directory");
@@ -89,12 +87,13 @@ public class PatcherHelper {
                     }
                 }
 
+                callback.onProgress("Generating signing keys...");
+                KeystoreGenerator.KeyPairAndCert keys = KeystoreGenerator.generateKeyPairAndCert();
+
                 String[] args = {
                     bgmiCopy.getAbsolutePath(),
                     "-o", outputDir.getAbsolutePath(),
                     "-m", moduleFile.getAbsolutePath(),
-                    "-k", keystoreFile.getAbsolutePath(),
-                    "123456", "key0", "123456",
                     "-f",
                     "-l", "2",
                     "-d"
@@ -116,9 +115,14 @@ public class PatcherHelper {
                     return;
                 }
 
-                File patched = patchedFiles[0];
-                callback.onProgress("Patch complete: " + patched.getName() + " (" + patched.length() / 1048576 + " MB)");
-                callback.onSuccess(patched);
+                File unsignedApk = patchedFiles[0];
+                callback.onProgress("Patch complete, signing APK...");
+
+                File signedApk = new File(outputDir, unsignedApk.getName().replace(".apk", "-signed.apk"));
+                KeystoreGenerator.signApk(unsignedApk, signedApk, keys.privateKey, keys.cert);
+
+                callback.onProgress("Signing complete: " + signedApk.getName() + " (" + signedApk.length() / 1048576 + " MB)");
+                callback.onSuccess(signedApk);
 
             } catch (Throwable t) {
                 Log.e(TAG, "Patching failed", t);

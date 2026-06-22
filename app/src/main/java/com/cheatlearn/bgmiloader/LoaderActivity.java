@@ -22,7 +22,7 @@ import java.io.File;
 public class LoaderActivity extends AppCompatActivity {
 
     private TextView tvStatus;
-    private Button btnPatch, btnLaunch, btnStartOverlay, btnStopOverlay;
+    private Button btnPatch, btnLaunch, btnCheckKeystore, btnStartOverlay, btnStopOverlay;
     private File patchedApk;
 
     @Override
@@ -33,11 +33,13 @@ public class LoaderActivity extends AppCompatActivity {
         tvStatus = findViewById(R.id.tvStatus);
         btnPatch = findViewById(R.id.btnPatch);
         btnLaunch = findViewById(R.id.btnLaunch);
+        btnCheckKeystore = findViewById(R.id.btnCheckKeystore);
         btnStartOverlay = findViewById(R.id.btnStartOverlay);
         btnStopOverlay = findViewById(R.id.btnStopOverlay);
 
         btnPatch.setOnClickListener(v -> patchAndInstall());
         btnLaunch.setOnClickListener(v -> launchPatchedBgmi());
+        btnCheckKeystore.setOnClickListener(v -> checkKeystore());
         btnStartOverlay.setOnClickListener(v -> startOverlay());
         btnStopOverlay.setOnClickListener(v -> stopOverlay());
 
@@ -162,6 +164,17 @@ public class LoaderActivity extends AppCompatActivity {
         } catch (Exception e) {
             Toast.makeText(this, "Failed to launch: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void checkKeystore() {
+        tvStatus.setText("Status: checking keystore...");
+        new Thread(() -> {
+            String result = KeystoreDiagnostics.run(LoaderActivity.this);
+            runOnUiThread(() -> {
+                tvStatus.setText(result.replace("\n", " | "));
+                Toast.makeText(LoaderActivity.this, "Check complete, see status", Toast.LENGTH_SHORT).show();
+            });
+        }).start();
     }
 
     private void startOverlay() {

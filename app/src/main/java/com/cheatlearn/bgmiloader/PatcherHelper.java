@@ -73,13 +73,9 @@ public class PatcherHelper {
                     while ((n = is.read(buf)) > 0) os.write(buf, 0, n);
                 }
 
-                File keystoreFile = new File(cacheDir, "legacy_keystore.p12");
-                try (InputStream is = context.getAssets().open("legacy_keystore.p12");
-                     FileOutputStream os = new FileOutputStream(keystoreFile)) {
-                    byte[] buf = new byte[8192];
-                    int n;
-                    while ((n = is.read(buf)) > 0) os.write(buf, 0, n);
-                }
+                File keystoreFile = new File(cacheDir, "runtime_keystore.p12");
+                callback.onProgress("Generating signing keystore on device...");
+                KeystoreGenerator.generate(keystoreFile, "123456", "key0");
 
                 File outputDir = new File(cacheDir, "patched");
                 if (!outputDir.exists() && !outputDir.mkdirs()) {
@@ -126,7 +122,16 @@ public class PatcherHelper {
 
             } catch (Throwable t) {
                 Log.e(TAG, "Patching failed", t);
-                callback.onError("Patching failed: " + t.getMessage());
+                StringBuilder sb = new StringBuilder("Patching failed: ");
+                sb.append(t.getMessage());
+                Throwable cause = t.getCause();
+                int depth = 0;
+                while (cause != null && depth < 3) {
+                    sb.append(" \u2192 ").append(cause.getMessage());
+                    cause = cause.getCause();
+                    depth++;
+                }
+                callback.onError(sb.toString());
             }
         }).start();
     }
